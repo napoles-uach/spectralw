@@ -57,28 +57,28 @@ if image is not None:
 else:
     st.info("Primero debes subir o capturar una imagen.")
 
-    st.subheader("Paso opcional: Ingresar picos conocidos para calibración")
+st.subheader("Paso opcional: Ingresar picos conocidos para calibración")
 
     # Recolectar entradas manuales
-    num_picos = st.number_input("¿Cuántos picos quieres ingresar?", min_value=1, max_value=10, value=2, step=1)
+num_picos = st.number_input("¿Cuántos picos quieres ingresar?", min_value=1, max_value=10, value=2, step=1)
 
-    pixeles = []
-    longitudes = []
+pixeles = []
+longitudes = []
 
-    col1, col2 = st.columns(2)
-    with col1:
+col1, col2 = st.columns(2)
+with col1:
         st.markdown("**Posiciones en píxeles (observadas en la gráfica)**")
         for i in range(num_picos):
             p = st.number_input(f"Pico #{i+1} - posición (px)", key=f"px_{i}")
             pixeles.append(p)
 
-    with col2:
+with col2:
         st.markdown("**Longitudes de onda reales (en nm, por ejemplo)**")
         for i in range(num_picos):
             l = st.number_input(f"Pico #{i+1} - λ real", key=f"lambda_{i}")
             longitudes.append(l)
 
-    if st.button("Mostrar datos de calibración"):
+if st.button("Mostrar datos de calibración"):
         st.write("Picos seleccionados:")
         for i in range(num_picos):
             st.write(f"Pixel: {pixeles[i]} → Longitud de onda: {longitudes[i]} nm")

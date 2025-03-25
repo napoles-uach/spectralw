@@ -2,3 +2,4 @@ streamlit
 Pillow
 numpy
 streamlit-drawable-canvas
+matplotlib

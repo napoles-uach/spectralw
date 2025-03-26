@@ -75,19 +75,25 @@ if image is not None:
             l = st.number_input(f"Pico #{i+1} - λ real", key=f"lambda_{i}")
             longitudes.append(l)
 
+    # Función de interpolación con extrapolación
+    def interpolate_with_extrapolation(x, xp, fp):
+        interp = np.interp(x, xp, fp)
+        left_mask = x < xp[0]
+        interp[left_mask] = fp[0] + (x[left_mask] - xp[0]) * (fp[1] - fp[0]) / (xp[1] - xp[0])
+        right_mask = x > xp[-1]
+        interp[right_mask] = fp[-1] + (x[right_mask] - xp[-1]) * (fp[-1] - fp[-2]) / (xp[-1] - xp[-2])
+        return interp
+
     if st.button("Generar espectro calibrado"):
         if len(pixeles) >= 2 and len(pixeles) == len(longitudes):
-            # Asegurar orden creciente de píxeles
             pixeles_np = np.array(pixeles)
             longitudes_np = np.array(longitudes)
 
-            # Ordenar por pixel
             sorted_indices = np.argsort(pixeles_np)
             pix_sorted = pixeles_np[sorted_indices]
             lambda_sorted = longitudes_np[sorted_indices]
 
-            # Interpolación
-            calibrated_axis = np.interp(x_axis, pix_sorted, lambda_sorted)
+            calibrated_axis = interpolate_with_extrapolation(x_axis, pix_sorted, lambda_sorted)
 
             # Gráfica calibrada
             fig2 = go.Figure()
@@ -101,7 +107,6 @@ if image is not None:
             )
             st.plotly_chart(fig2, use_container_width=True)
 
-            # Mostrar y exportar datos calibrados
             if st.checkbox("Mostrar datos calibrados (tabla)"):
                 df = pd.DataFrame({
                     "Longitud de onda (nm)": calibrated_axis,

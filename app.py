@@ -4,7 +4,7 @@ import numpy as np
 import plotly.graph_objects as go
 import pandas as pd
 
-st.title("Espectroscopía DIY - Generación del espectro (con opción de calibración)")
+st.title("Espectroscopía DIY - Generación del espectro (con calibración y recorte)")
 
 # Paso 1: Cargar imagen
 method = st.radio("¿Cómo deseas cargar la imagen?", ["Subir desde archivo", "Usar cámara"])
@@ -19,23 +19,40 @@ elif method == "Usar cámara":
     if camera_image is not None:
         image = Image.open(camera_image)
 
-# Paso 2: Mostrar y procesar la imagen
+# Paso 2: Procesar imagen si fue cargada
 if image is not None:
-    st.image(image, caption="Imagen del espectro", use_column_width=True)
+    st.image(image, caption="Imagen original", use_column_width=True)
 
-    image_np = np.array(image)
-    st.write(f"Dimensiones de la imagen: {image_np.shape}")
+    width, height = image.size
+    st.subheader("Recorte de la región de interés (opcional)")
+    st.markdown("Define las coordenadas para recortar la imagen (en píxeles):")
 
-    # Convertir a escala de grises si es RGB
+    col1, col2 = st.columns(2)
+    with col1:
+        x0 = st.number_input("x0 (inicio horizontal)", min_value=0, max_value=width-1, value=0)
+        x1 = st.number_input("x1 (fin horizontal)", min_value=1, max_value=width, value=width)
+    with col2:
+        y0 = st.number_input("y0 (inicio vertical)", min_value=0, max_value=height-1, value=0)
+        y1 = st.number_input("y1 (fin vertical)", min_value=1, max_value=height, value=height)
+
+    # Recortar imagen
+    cropped_image = image.crop((x0, y0, x1, y1))
+    st.image(cropped_image, caption="Imagen recortada", use_column_width=True)
+
+    # Convertir a numpy
+    image_np = np.array(cropped_image)
+    st.write(f"Dimensiones de la imagen recortada: {image_np.shape}")
+
+    # Convertir a escala de grises
     if len(image_np.shape) == 3:
         gray_image = np.mean(image_np, axis=2)
     else:
         gray_image = image_np
 
-    # Selección de orientación
+    # Orientación del espectro
     orientation = st.selectbox("Orientación del espectro", ["Horizontal (colores a lo largo del eje x)", "Vertical (colores a lo largo del eje y)"])
 
-    # Cálculo del perfil
+    # Perfil de intensidad
     if "Horizontal" in orientation:
         intensity = np.mean(gray_image, axis=0)
         x_axis = np.arange(len(intensity))
@@ -43,7 +60,7 @@ if image is not None:
         intensity = np.mean(gray_image, axis=1)
         x_axis = np.arange(len(intensity))
 
-    # Gráfica sin calibrar
+    # Espectro sin calibrar
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=x_axis, y=intensity, mode='lines', line=dict(color='black')))
     fig.update_layout(
@@ -55,7 +72,7 @@ if image is not None:
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Ingreso manual de picos para calibración
+    # Entrada de picos conocidos
     st.subheader("Paso opcional: Ingresar picos conocidos para calibración")
     num_picos = st.number_input("¿Cuántos picos quieres ingresar?", min_value=1, max_value=10, value=2, step=1)
 
@@ -70,12 +87,12 @@ if image is not None:
             pixeles.append(p)
 
     with col2:
-        st.markdown("**Longitudes de onda reales (en nm, por ejemplo)**")
+        st.markdown("**Longitudes de onda reales (en nm)**")
         for i in range(num_picos):
             l = st.number_input(f"Pico #{i+1} - λ real", key=f"lambda_{i}")
             longitudes.append(l)
 
-    # Función de interpolación con extrapolación
+    # Interpolación con extrapolación
     def interpolate_with_extrapolation(x, xp, fp):
         interp = np.interp(x, xp, fp)
         left_mask = x < xp[0]
@@ -95,7 +112,7 @@ if image is not None:
 
             calibrated_axis = interpolate_with_extrapolation(x_axis, pix_sorted, lambda_sorted)
 
-            # Gráfica calibrada
+            # Espectro calibrado
             fig2 = go.Figure()
             fig2.add_trace(go.Scatter(x=calibrated_axis, y=intensity, mode='lines', line=dict(color='blue')))
             fig2.update_layout(
@@ -118,3 +135,4 @@ if image is not None:
             st.error("Debes ingresar al menos dos pares válidos de (píxel, longitud de onda).")
 else:
     st.info("Primero debes subir o capturar una imagen.")
+

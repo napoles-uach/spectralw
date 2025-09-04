@@ -7,7 +7,7 @@ import pandas as pd
 st.title("Espectroscopía DIY - Generación del espectro (con calibración y recorte)")
 st.title("Oscilador Forzado")
 st.sidebar.markdown('''
-Software didáctico diseñando
+Material didáctico diseñando
 por
 * D.C. José Manuel Nápoles Duarte
 * D. C. Juan Pedro Palomares Baez

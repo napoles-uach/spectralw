@@ -5,7 +5,23 @@ import plotly.graph_objects as go
 import pandas as pd
 
 st.title("Espectroscopía DIY - Generación del espectro (con calibración y recorte)")
+st.title("Oscilador Forzado")
+st.sidebar.markdown('''
+Software didáctico diseñando
+por
+* D.C. José Manuel Nápoles Duarte
+* D. C. Juan Pedro Palomares Baez
 
+En apoyo a las materias:
+Física General II
+y
+Fenómenos Electroópticos
+
+de la Facultad de Ciencias Químicas
+de la Universidad Autónoma de Chihuahua
+''')
+st.sidebar.image('https://raw.githubusercontent.com/napoles-uach/ondas/refs/heads/main/logofcq.png')
+# Descripción breve
 # Paso 1: Cargar imagen
 method = st.radio("¿Cómo deseas cargar la imagen?", ["Subir desde archivo", "Usar cámara"])
 image = None
